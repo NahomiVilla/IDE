@@ -14,7 +14,14 @@ def abrir_arch():
     global ruta
     mensaje.set("Abrir fichero")
     ruta = FileDialog.askopenfilename(
-    initialdir='.', 
-    filetypes=(("Ficheros python", "*.py"),),
-    title="Abrir un fichero python")
+        initialdir='.', 
+        filetypes=(("Ficheros python", "*.py"),),
+        title="Abrir un fichero python")
     
+    if ruta != "":
+        fichero = open(ruta, 'r')
+        contenido = fichero.read()
+        texto.delete(1.0,'end')
+        texto.insert('insert', contenido)
+        fichero.close()
+        root.title(ruta + " - GoQ - Editor")
