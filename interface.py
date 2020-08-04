@@ -25,3 +25,35 @@ def abrir_arch():
         texto.insert('insert', contenido)
         fichero.close()
         root.title(ruta + " - GoQ - Editor")
+
+
+# Configuración de la raíz
+window = Tk()
+window.title("Mi editor")
+
+# Caja de texto central
+texto = Text(window)
+texto.pack(fill="both", expand=1)
+texto.config(bd=0, padx=6, pady=4, font=("Consolas",12))
+
+# Monitor inferior
+mensaje = StringVar()
+mensaje.set("Bienvenido a tu Editor")
+monitor = Label(window, textvar=mensaje, justify='left')
+monitor.pack(side="left")
+
+# Finalmente bucle de la apliación
+window.mainloop()
+
+
+
+
+
+
+
+
+
+
+
+
+
