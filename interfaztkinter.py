@@ -1,14 +1,12 @@
 import tkinter as tk
 from tkinter import*
-from tkinter import PhotoImage
 from NumberedScrolledText import NumberedScrolledText
 from tkinter.filedialog import asksaveasfilename,askopenfilename
 from tkinter import messagebox
 from colorizador import TemaManager as tm
 from terminal import configurar_redireccion
-from puertos_manejo import click_conectar
-from puertos_manejo import detectar_arduinos
-from puertos_manejo import desconectar
+from puertos_manejo import click_conectar,detectar_arduinos,desconectar
+
 import puertos_manejo
 import json
 from Info import *
@@ -27,16 +25,22 @@ colorfg='white'
 ultima_posicion = "1.0"
 
 
-def seleccion_graficos(grafi,cant):
-    global selec_graph,selec_cant,menu_graficos,graficos
+def seleccion_graficos(grafi='Frecuencia', cant=1):
+    global selec_graph, selec_cant, menu_graficos, graficos, graf_menu
     menu_graficos.delete(0, "end")
-    for idx, item in enumerate(graficos):
-        if opcion == item:
+    graf_menu.delete(0,"end")
+    for idx1,item1 in enumerate(range(1,7)):
+        if cant== item1:
+            item1="\u2713 " + str(item1)
+        graf_menu.add_command(label=item1,command=lambda graf=grafi, i=cant:seleccion_graficos(graf,i))
+    for idx, item in enumerate(tipos_graficos):
+        if grafi == item:  # Aquí usamos selec_graph en lugar de opcion
             # Agrega un visto a la opción seleccionada
-            item = "\u2713 " + item
-        menu_graficos.add_command(label=item, command=lambda opt=item: seleccion_graficos(opt,cant))
-    selec_graph =grafi
-    selec_cant=cant  
+            item = "\u2713 " + item  
+        menu_graficos.add_cascade(label=item,menu=graf_menu)
+    selec_graph = grafi
+    selec_cant = cant  
+    
      
 def marcado(opcion,lista,menu):
     global seleccion_baudio
@@ -46,31 +50,35 @@ def marcado(opcion,lista,menu):
             # Agrega un visto a la opción seleccionada
             item = "\u2713 " + item
             seleccion_baudio.set(opcion)
-            menu.add_command(label=item, command=lambda opt=item: marcado(opt,baudios,menu_baudios))
+        menu.add_command(label=item, command=lambda opt=item: marcado(opt,baudios,menu_baudios))
 
-def marcado_ard(opcion,lista,menu):
+def marcado_ard(opcion1,lista1,menu1):
     global seleccion_arduino
-    menu.delete(0, "end")
-    for idx, item in enumerate(lista):
-        if opcion == item:
+    menu1.delete(0, "end")
+    for idx, item in enumerate(lista1):
+        if opcion1 == item:
             # Agrega un visto a la opción seleccionada
             item = "\u2713 " + item
-            seleccion_arduino.set(opcion)
-            menu.add_command(label=item, command=lambda opt=item: marcado(opt,arduinos,menu_puertos))
+            seleccion_arduino.set(opcion1)
+        menu1.add_command(label=item, command=lambda opt=item: marcado(opt,arduinos,menu_puertos))
 
 def click_conexion():
-    global img2,conexion_exitosa,usb_boton
+    global img2,conexion_exitosa,usb_boton,selec_graph,selec_cant
+    #cambio_imagen()
     if puertos_manejo.conexion!=True:
-        click_conectar(seleccion_arduino.get(),seleccion_baudio.get(),selec_graph,selec_cant)
+        if selec_graph=='' and selec_cant=='':
+            selec_graph='Frecuencia'
+            selec_cant=1
+            seleccion_graficos(selec_graph,selec_cant)
         usb_boton.configure(image=usb_image2,command=funcion_desconectar,bg=color)
-        conexion_exitosa=True
-        if conexion_exitosa:
-            messagebox.showinfo(message="Conexión exitosa", title="Conexion arduino")
-        else:
-            messagebox.showerror('Puerto','Conecte una tarjeta arduino o seleccione el puerto y tipo de grafico ')
-    #else:
-    #    messagebox.showerror('conexion','ya hay una conexion existente')
-        
+        click_conectar(seleccion_arduino.get(),seleccion_baudio.get(),selec_graph,selec_cant)
+        if puertos_manejo.conexion!=True:
+            usb_boton.configure(image=usb_image,bg=color,borderwidth=0,command=click_conexion)
+            messagebox.showerror('Puerto','Conecte una tarjeta arduino o seleccione el puerto y tipo de grafico ')     
+    else:
+        usb_boton.configure(image=usb_image2,command=funcion_desconectar,bg=color)
+        messagebox.showerror('conexion','ya hay una conexion existente')
+      
 def funcion_desconectar():
     global usb_boton,usb_image
     desconectar()
@@ -352,6 +360,13 @@ def actualizar_puertos(menu_puertos):
     arduinos = detectar_arduinos()
     for arduino in arduinos:
         menu_puertos.add_command(label=arduino, command=lambda ard=arduino: marcado_ard(ard, arduinos, menu_puertos))
+    # Obtener la opción seleccionada actualmente
+    opcion_seleccionada = seleccion_arduino.get()
+    if opcion_seleccionada in arduinos:
+        # Si la opción seleccionada todavía está en la lista de arduinos disponibles,
+        # marcarla nuevamente después de actualizar el menú
+        marcado_ard(opcion_seleccionada, arduinos, menu_puertos)
+
     ventana.after(1000, lambda: actualizar_puertos(menu_puertos))
 def creadores():
     ventana_info_creadores=tk.Toplevel(ventana)
@@ -564,6 +579,7 @@ area_texto.text_area.bind("<Button-3>", mostrar_menu)
 #colores al texto
 coli=tm(area_texto)
 cargar_configuracion()
+#evento_conexion_exitosa.add_observer(manejar_evento_conexion_exitosa)
 # Ejecutar la ventana
 ventana.mainloop()
 puertos_manejo.finish=True
