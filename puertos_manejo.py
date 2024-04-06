@@ -1,5 +1,6 @@
 import serial.tools.list_ports
 import time
+import tkinter as tk
 from tkinter import messagebox
 from graficos_creacion import create_plots
 import matplotlib.pyplot as plt
@@ -11,6 +12,8 @@ baudios=None
 cantidad=1
 tipo='Frecuencia'
 conexion=False
+
+#evento_conexion_exitosa = tk.Event()
 def detectar_arduinos():
     global puertos, arduinos_conectados
     #capturar los puertos com
@@ -22,8 +25,6 @@ def detectar_arduinos():
         arduinos_conectados.append(puerto.device)
     #time.sleep(3)
     return arduinos_conectados
-
-
 
 #funcion recibe datos del arduino
 def recibir_datos(port,baud,ax,line,lista):
@@ -48,11 +49,10 @@ def crear_graph(a,linea,lista,dato):
     linea.set_ydata(lista)
     plt.draw()
     plt.pause(0.001)
-
-
 #Función conexion
 #iniciar
-def click_conectar(port,baudis=9600,graph='lineas',canti=1):
+
+def click_conectar(port,baudis=9600,graph='lineas',canti=1,callback=None):
     global baudios,puerto,cantidad,tipo,conexion
     puerto=port
     baudios=baudis

@@ -21,11 +21,11 @@ class PositionInfo:
             self.ultima_posicion = nueva_posicion
             linea, columna = nueva_posicion.split('.')
             self.etiqueta_posicion.config(text=f'Línea: {linea}, Columna: {columna}')
-        if self.seleccion_arduino.get() != '' :
+        if self.seleccion_arduino.get() != ''  and self.seleccion_baudio.get() == '':
             self.etiqueta_info.configure(text='Port: {}    Baudio: --'.format(self.seleccion_arduino.get()))
-        elif self.seleccion_baudio.get() != '':
+        elif self.seleccion_baudio.get() != '' and self.seleccion_arduino.get() == '':
             self.etiqueta_info.configure(text='Port: --    Baudio: {}'.format( self.seleccion_baudio.get()))
         elif self.seleccion_arduino.get() != ''  and self.seleccion_baudio.get() != '':
             self.etiqueta_info.configure(text='Port: {}    Baudio: {}'.format(self.seleccion_arduino.get(), self.seleccion_baudio.get()))
     def actualizar_posicion(self, event):
-        self.etiqueta_posicion.after(50, self.mostrar_posicion)  # 50 ms de retraso
+        self.etiqueta_posicion.after(30, self.mostrar_posicion)  # 30 ms de retraso
