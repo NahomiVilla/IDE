@@ -7,7 +7,7 @@ from colorizador import TemaManager as tm
 from terminal import configurar_redireccion
 from puertos_manejo import click_conectar,detectar_arduinos,desconectar
 
-import puertos_manejo
+import puertos_manejo as p
 import json
 from Info import *
 
@@ -25,23 +25,25 @@ colorfg='white'
 ultima_posicion = "1.0"
 
 
-def seleccion_graficos(grafi='Frecuencia', cant=1):
-    global selec_graph, selec_cant, menu_graficos, graficos, graf_menu
-    menu_graficos.delete(0, "end")
-    graf_menu.delete(0,"end")
-    for idx1,item1 in enumerate(range(1,7)):
-        if cant== item1:
-            item1="\u2713 " + str(item1)
-        graf_menu.add_command(label=item1,command=lambda graf=grafi, i=cant:seleccion_graficos(graf,i))
-    for idx, item in enumerate(tipos_graficos):
-        if grafi == item:  # Aquí usamos selec_graph en lugar de opcion
-            # Agrega un visto a la opción seleccionada
-            item = "\u2713 " + item  
-        menu_graficos.add_cascade(label=item,menu=graf_menu)
-    selec_graph = grafi
-    selec_cant = cant  
-    
+def seleccion_graficos(grafi):
+    global selec_graph, menu_graficos
+    menu_graficos.delete(0,'end')
+    for __,item_g in enumerate(tipos_graficos):
+        if grafi==item_g:
+            item_g="✔" +item_g
+            selec_graph.set(grafi)
+        menu_graficos.add_command(label=item_g,command=lambda graf=item_g:seleccion_graficos(graf))
+
+def seleccion_cantidad(cant):
+    global selec_cant,menu_cantidad
+    menu_cantidad.delete(0,'end')
+    for __,item_c in enumerate(range(1,7)):
+        if cant==item_c:
+            item_c="✔" +str(item_c)
+            selec_cant.set(cant)
+        menu_cantidad.add_command(label=item_c,command=lambda cant=item_c:seleccion_cantidad(cant))
      
+ 
 def marcado(opcion,lista,menu):
     global seleccion_baudio
     menu.delete(0, "end")
@@ -51,7 +53,7 @@ def marcado(opcion,lista,menu):
             item = "\u2713 " + item
             seleccion_baudio.set(opcion)
         menu.add_command(label=item, command=lambda opt=item: marcado(opt,baudios,menu_baudios))
-
+        
 def marcado_ard(opcion1,lista1,menu1):
     global seleccion_arduino
     menu1.delete(0, "end")
@@ -65,16 +67,16 @@ def marcado_ard(opcion1,lista1,menu1):
 def click_conexion():
     global img2,conexion_exitosa,usb_boton,selec_graph,selec_cant
     #cambio_imagen()
-    if puertos_manejo.conexion!=True:
-        if selec_graph=='' and selec_cant=='':
-            selec_graph='Frecuencia'
-            selec_cant=1
-            seleccion_graficos(selec_graph,selec_cant)
+    if p.conexion!=True:
+        if selec_graph.get()=='' and selec_cant.get()=='':
+            selec_graph.set('Frecuencia')
+            selec_cant.set(1)
+            seleccion_graficos(selec_graph.get(),selec_cant.get())
         usb_boton.configure(image=usb_image2,command=funcion_desconectar,bg=color)
-        click_conectar(seleccion_arduino.get(),seleccion_baudio.get(),selec_graph,selec_cant)
-        if puertos_manejo.conexion!=True:
+        click_conectar(seleccion_arduino.get(),seleccion_baudio.get(),selec_graph.get(),selec_cant.get())
+        if p.conexion!=True:
             usb_boton.configure(image=usb_image,bg=color,borderwidth=0,command=click_conexion)
-            messagebox.showerror('Puerto','Conecte una tarjeta arduino o seleccione el puerto y tipo de grafico ')     
+            messagebox.showerror('Puerto','Conecte una tarjeta arduino, seleccione el puerto y tipo de grafico o asegurese de que su tarjeta arduino este enviando datos')     
     else:
         usb_boton.configure(image=usb_image2,command=funcion_desconectar,bg=color)
         messagebox.showerror('conexion','ya hay una conexion existente')
@@ -402,8 +404,8 @@ CREADORES:
 # Crear la ventana
 ventana = tk.Tk()
 
-selec_graph=''
-selec_cant=''
+selec_graph=tk.StringVar()
+selec_cant=tk.IntVar()
 arduinos=[]
 fuente=tk.StringVar()
 siz=tk.IntVar()
@@ -461,6 +463,11 @@ baudi=tk.Menubutton(menu_frame,text='Baudios',
                     fg=colorfg,
                     activebackground=color,
                     activeforeground='gray52')
+cantidad=tk.Menubutton(menu_frame,text='Cantidad de Graficos',
+                    bg=color,
+                    fg=colorfg,
+                    activebackground=color,
+                    activeforeground='gray52')
 
 #menu desplegable
 menu_archivo=tk.Menu(archivo,tearoff=0)
@@ -468,6 +475,7 @@ menu_archivo=tk.Menu(archivo,tearoff=0)
 menu_graficos=tk.Menu(graficos,tearoff=0)
 menu_puertos=tk.Menu(puertos,tearoff=0)
 menu_baudios=tk.Menu(baudi,tearoff=0)
+menu_cantidad=tk.Menu(cantidad,tearoff=0)
 
 #agregar opciones
 menu_archivo.add_command(label='abrir',
@@ -494,10 +502,9 @@ menu_archivo.add_cascade(label="Editar",menu=editar_menu)
 #tipo de graficos
 tipos_graficos=['Barras','Torta','Columnas','Frecuencia','Lineas']
 for graf in tipos_graficos:
-    graf_menu=tk.Menu(menu_graficos,tearoff=0)
-    for i in range(1,7):
-        graf_menu.add_command(label=i,command=lambda graf=graf, i=i:seleccion_graficos(graf,i))
-    menu_graficos.add_cascade(label=graf,menu=graf_menu)
+    menu_graficos.add_command(label=graf,command=lambda graf=graf:seleccion_graficos(graf))
+for i in range(1,7):
+    menu_cantidad.add_command(label=i,command=lambda i=i:seleccion_cantidad(i))
 
 #baudios
 baudios=[
@@ -519,11 +526,15 @@ archivo.config(menu=menu_archivo)
 archivo.pack(side='left')
 graficos.config(menu=menu_graficos)
 graficos.pack(side='left')
+cantidad.config(menu=menu_cantidad)
+cantidad.pack(side='left')
 puertos.config(menu=menu_puertos)
 puertos.pack(side='left')
-guardar_boton.pack(side='left')
 baudi.config(menu=menu_baudios)
 baudi.pack(side='left')
+guardar_boton.pack(side='left')
+
+
 
 ######################## BOTONES ########################################
 #botones con iconos
@@ -582,4 +593,4 @@ cargar_configuracion()
 #evento_conexion_exitosa.add_observer(manejar_evento_conexion_exitosa)
 # Ejecutar la ventana
 ventana.mainloop()
-puertos_manejo.finish=True
+p.finish=True
