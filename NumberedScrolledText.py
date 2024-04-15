@@ -1,7 +1,5 @@
 import tkinter as tk
-import tkinter
 from tkinter import scrolledtext
-import matplotlib.font_manager as fm
 
 class NumberedScrolledText(tk.Frame):
     def __init__(self, master, *args, **kwargs):

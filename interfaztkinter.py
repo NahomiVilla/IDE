@@ -291,8 +291,11 @@ def cargar_configuracion():
         pass    
 #aplicar configuracion aplicada
 def aplicar():
-    global tema,siz,fuente,modo,color,colorfg,ventana_mg
-    area_texto.text_area.config(font=(fuente.get(),siz.get()))
+    global tema,siz,fuente,modo,color,colorfg
+    area_texto.text_area.tag_configure('my_font',font=(fuente.get(),siz.get()))
+    area_texto.text_area.tag_add('my_font','1.0','end')
+    area_texto.line_numbers.tag_configure('myfont',font=(fuente.get(),siz.get()))
+    area_texto.line_numbers.tag_add('myfont','1.0','end')
     if modo.get() != 'Dark':
         color='white'
         colorfg='black'
@@ -386,8 +389,8 @@ CREADORES:
     Contacto: nahomyvillag2@gmail.com""",font=('Arial',10),bg=color,fg=colorfg)
     descripcion.pack(pady=10)
 def mostrar_graficos():
-    p.funcion(selec_graph.get(),selec_cant.get(),usb_boton,usb_image,color,click_conexion)
     ventana_mg.destroy()
+    p.funcion(selec_graph.get(),selec_cant.get(),usb_boton,usb_image,color,click_conexion)
 def grafico():
     global ventana_mg
     ventana_mg=tk.Toplevel(ventana)
